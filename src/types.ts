@@ -12,3 +12,7 @@ type Result = {
   html: string,
   css: string
 };
+
+/* EXPORT */
+
+export {Options, Result};

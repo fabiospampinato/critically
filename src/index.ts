@@ -1,7 +1,7 @@
 
 /* IMPORT */
 
-import './types';
+import {Options, Result} from './types';
 import Utils from './utils';
 
 /* CRITICALLY */

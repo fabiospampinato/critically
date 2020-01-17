@@ -124,7 +124,7 @@ const Utils = {
 
           if ( styleMap && !styleMap.size ) continue; // No styles set
 
-          const selector = selectorText.replace ( /(\w)\:+(before|after)/gmi, '$1' ); // Removing pseudoselectors, or the selector will never match anything
+          const selector = selectorText.replace ( /(\w)\:+(?:[a-z0-9_-]+)(?:\([^)]*\))?/gmi, '$1' ); // Removing pseudoselectors, or the selector may be mistakenly deleted
 
           if ( doc.querySelectorAll ( selector ).length ) css += ` ${cssText}`;
 

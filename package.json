@@ -1,7 +1,7 @@
 {
   "name": "critically",
   "description": "Tiny, performant, isomorphic library for extracting the critical CSS.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

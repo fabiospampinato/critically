@@ -72,7 +72,7 @@ const Utils = {
 
       if ( html.includes ( '<pre' ) ) return html.trim (); // Bailing out of minification because it will probably break things
 
-      return html.trim ().replace ( />\s+</g, '><' ); // This might be sligthly unsafe
+      return html.trim ().replace ( />\s{2,}</g, '> <' );
 
     }
 

@@ -7,9 +7,10 @@ const Utils = {
 
     clone ( doc: Document ): Document {
 
-      const clone = Utils.document.create ( doc );
+      const clone = Utils.document.create ( doc ),
+            html = doc.documentElement.outerHTML;
 
-      clone.documentElement.innerHTML = doc.documentElement.innerHTML;
+      clone.write ( html );
 
       return clone;
 
@@ -25,7 +26,7 @@ const Utils = {
 
       const d = Utils.document.create ( doc );
 
-      d.documentElement.innerHTML = html;
+      d.write ( html );
 
       return d;
 

@@ -8,7 +8,7 @@ import Utils from './utils';
 
 async function critically ( options: Options = {} ): Promise<Result> {
 
-  const minify = !( options.minify === false );
+  const minify = options.minify !== false;
 
   if ( !options.document && !options.html ) throw new Error ( 'You need to provide either a document or some HTML' );
 
@@ -40,7 +40,7 @@ async function critically ( options: Options = {} ): Promise<Result> {
 
   const html = Utils.html.get ( clone, { includeDocType: true, minify } );
 
-  return { html, css };
+  return { clone, html, css };
 
 }
 

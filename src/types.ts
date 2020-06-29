@@ -9,6 +9,7 @@ type Options = {
 };
 
 type Result = {
+  clone: Document,
   html: string,
   css: string
 };

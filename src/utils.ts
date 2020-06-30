@@ -18,7 +18,7 @@ const Utils = {
 
     create ( doc: Document ): Document {
 
-      return doc.implementation.createHTMLDocument ();
+      return doc.implementation.createHTMLDocument ( '' );
 
     },
 
@@ -26,7 +26,9 @@ const Utils = {
 
       const d = Utils.document.create ( doc );
 
+      d.open ();
       d.write ( html );
+      d.close ();
 
       return d;
 

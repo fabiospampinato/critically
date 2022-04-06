@@ -2,7 +2,7 @@
   "name": "critically",
   "repository": "github:fabiospampinato/critically",
   "description": "Tiny performant library for extracting the critical CSS.",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "type": "module",
   "main": "dist/index.js",
   "exports": "./dist/index.js",

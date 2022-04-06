@@ -1,6 +1,6 @@
 # Critically
 
-Tiny, performant, isomorphic library for extracting the critical CSS.
+Tiny performant library for extracting the critical CSS.
 
 Compared to [`critical`](https://github.com/addyosmani/critical) this library:
 
@@ -28,6 +28,7 @@ type Options = {
 };
 
 type Result = {
+  clone: Document, // The cloned document object
   html: string, // Full HTML with the critical CSS embedded in it
   css: string // Only the critical CSS
 };
@@ -42,8 +43,7 @@ You need to provide either an HTML string or a document object. The document wil
 ```ts
 import critically from 'critically';
 
-critically ({ document })
-  .then ( ({ html, css }) => console.log ( html, css ) );
+const {clone, html, css} = await critically ({ document });
 ```
 
 ## License

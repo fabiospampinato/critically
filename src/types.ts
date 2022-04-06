@@ -1,5 +1,5 @@
 
-/* TYPES */
+/* MAIN */
 
 type Options = {
   document?: Document,
@@ -16,4 +16,4 @@ type Result = {
 
 /* EXPORT */
 
-export {Options, Result};
+export type {Options, Result};

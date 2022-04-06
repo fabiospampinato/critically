@@ -1,44 +1,46 @@
 
-/* UTILS */
+/* MAIN */
 
 const Utils = {
 
   document: {
 
-    clone ( doc: Document ): Document {
+    clone: ( doc: Document ): Document => {
 
-      const clone = Utils.document.create ( doc ),
-            html = doc.documentElement.outerHTML;
+      const clone = Utils.document.create ( doc );
+      const html = doc.documentElement.outerHTML;
 
+      clone.open ();
       clone.write ( html );
+      clone.close ();
 
       return clone;
 
     },
 
-    create ( doc: Document ): Document {
+    create: ( doc: Document ): Document => {
 
       return doc.implementation.createHTMLDocument ( '' );
 
     },
 
-    get ( html: string, doc: Document ): Document {
+    get: ( doc: Document, html: string ): Document => {
 
-      const d = Utils.document.create ( doc );
+      const clone = Utils.document.create ( doc );
 
-      d.open ();
-      d.write ( html );
-      d.close ();
+      clone.open ();
+      clone.write ( html );
+      clone.close ();
 
-      return d;
+      return clone;
 
     },
 
-    isRendered ( doc: Document ): boolean { // If the document is not rendered/mounted some style-related features won't be retrievable
+    isRendered: ( doc: Document ): boolean => { // If the document is not rendered/mounted some style-related features won't be retrievable
 
-      const getStyle = doc.defaultView ? doc.defaultView.getComputedStyle : getComputedStyle; // Improved support for Node.js
+      const getStyle = doc.defaultView?.getComputedStyle || globalThis.window?.getComputedStyle; // Improved support for Node.js
 
-      return !!getStyle ( doc.documentElement! ).fontFamily; // If there's no font-family set then the document is not rendered/mounted
+      return !!getStyle ( doc.documentElement ).fontFamily; // If there's no font-family set then the document is not rendered/mounted
 
     }
 
@@ -46,7 +48,7 @@ const Utils = {
 
   html: {
 
-    get ( doc: Document, options: { includeDocType: boolean, minify: boolean } = { includeDocType: true, minify: true } ): string {
+    get: ( doc: Document, options: { includeDocType: boolean, minify: boolean } = { includeDocType: true, minify: true } ): string => {
 
       let html = doc.documentElement.outerHTML;
 
@@ -62,15 +64,17 @@ const Utils = {
 
     },
 
-    getDocType ( doc: Document ): string {
+    getDocType: ( doc: Document ): string => {
 
-      if ( !doc.doctype || typeof XMLSerializer === 'undefined' ) return '<!DOCTYPE html>'; // Improved support for Node.js
+      const XMLSerializer = globalThis.XMLSerializer || globalThis.window?.XMLSerializer;
+
+      if ( !doc.doctype || !XMLSerializer ) return '<!DOCTYPE html>'; // Improved support for Node.js
 
       return new XMLSerializer ().serializeToString ( doc.doctype );
 
     },
 
-    minify ( html: string ): string {
+    minify: ( html: string ): string => {
 
       if ( html.includes ( '<pre' ) ) return html.trim (); // Bailing out of minification because it will probably break things
 
@@ -82,7 +86,7 @@ const Utils = {
 
   css: {
 
-    minify ( css: string ): string {
+    minify: ( css: string ): string => {
 
       return css.trim ().replace ( /\s*([{}|:;,])\s+/g, '$1' ).replace ( /;}/g, '}' ); // This might be sligthly unsafe
 
@@ -92,13 +96,13 @@ const Utils = {
 
   stylesheet: {
 
-    get ( css: string, doc: Document ): StyleSheet | null {
+    get: ( css: string, doc: Document ): CSSStyleSheet | null => {
 
       const style = doc.createElement ( 'style' );
 
       style.setAttribute ( 'media', 'not screen and ( min-width: 1px )' ); // Un-matchable media query, ensuring this stylesheet won't mess-up the document
 
-      style.innerText = css;
+      style.innerHTML = css;
 
       doc.head.appendChild ( style );
 
@@ -110,16 +114,17 @@ const Utils = {
 
     },
 
-    getCritical ( doc: Document, stylesheet, families: string[], options: { minify: boolean } ): string {
+    getCritical: ( doc: Document, stylesheet: CSSStyleSheet, families: string[], options: { minify: boolean } ): string => {
 
       let css = '';
 
-      const {rules} = stylesheet,
-            rulesFont: CSSFontFaceRule[] = [];
+      const {rules} = stylesheet;
+      const rulesFont: CSSFontFaceRule[] = [];
 
       for ( let id in rules ) {
 
-        const {cssText, selectorText, style, styleMap} = rules[id];
+        const rule = rules[id] as any; //TSC
+        const {cssText, selectorText, style, styleMap} = rule;
 
         if ( !cssText ) continue;
 
@@ -143,7 +148,7 @@ const Utils = {
 
           } else { // Checking later
 
-            rulesFont.push ( rules[id] );
+            rulesFont.push ( rule );
 
           }
 
@@ -153,8 +158,8 @@ const Utils = {
 
       rulesFont.forEach ( rule => {
 
-        const {cssText, style} = rule,
-              {fontFamily} = style;
+        const {cssText, style} = rule;
+        const {fontFamily} = style;
 
         if ( !fontFamily ) return;
 
@@ -174,7 +179,7 @@ const Utils = {
 
   stylesheets: {
 
-    async get ( doc: Document ): Promise<StyleSheet[]> {
+    get: async ( doc: Document ): Promise<CSSStyleSheet[]> => {
 
       if ( Utils.document.isRendered ( doc ) && doc.styleSheets.length ) { // Stylesheets found
 
@@ -182,16 +187,16 @@ const Utils = {
 
       } else { // Creating stylesheets from <style> and <link rel="stylesheet"> nodes
 
-        const stylesheets: StyleSheet[] = [],
-              nodes = Utils.stylesheets.getNodes ( doc );
+        const stylesheets: CSSStyleSheet[] = [];
+        const nodes = Utils.stylesheets.getNodes ( doc );
 
         for ( let i = 0, l = nodes.length; i < l; i++ ) {
 
-          const node = nodes[i],
-                {innerText} = node,
-                href = node.getAttribute ( 'href' ),
-                css = href ? await fetch ( href, { credentials: 'include' } ).then ( res => res.text () ) : innerText,
-                stylesheet = Utils.stylesheet.get ( css, doc );
+          const node = nodes[i];
+          const {innerHTML} = node;
+          const href = node.getAttribute ( 'href' );
+          const css = href ? await fetch ( href, { credentials: 'include' } ).then ( res => res.text () ) : innerHTML;
+          const stylesheet = Utils.stylesheet.get ( css, doc );
 
           if ( !stylesheet || stylesheet.disabled ) continue;
 
@@ -205,22 +210,22 @@ const Utils = {
 
     },
 
-    getCritical ( doc: Document, stylesheets: StyleSheet[], families: string[], options: { minify: boolean } ): string {
+    getCritical: ( doc: Document, stylesheets: CSSStyleSheet[], families: string[], options: { minify: boolean } ): string => {
 
       return stylesheets.map ( stylesheet => Utils.stylesheet.getCritical ( doc, stylesheet, families, options ) ).join ( '' );
 
     },
 
-    getNodes ( doc: Document ): HTMLElement[] {
+    getNodes: ( doc: Document ): HTMLElement[] => {
 
-      const positive: HTMLElement[] = Array.from ( doc.querySelectorAll ( 'style, link[rel="stylesheet"]' ) ),
-            negative: HTMLElement[] = Array.from ( doc.querySelectorAll ( 'svg style' ) );
+      const positive: HTMLElement[] = Array.from ( doc.querySelectorAll ( 'style, link[rel="stylesheet"]' ) );
+      const negative: HTMLElement[] = Array.from ( doc.querySelectorAll ( 'svg style' ) );
 
       return positive.filter ( node => !negative.includes ( node ) );
 
     },
 
-    remove ( doc: Document ): void {
+    remove: ( doc: Document ): void => {
 
       const nodes = Utils.stylesheets.getNodes ( doc );
 
@@ -240,19 +245,19 @@ const Utils = {
 
   font: {
 
-    sanitizeFamily ( family: string ): string {
+    sanitizeFamily: ( family: string ): string => {
 
       return family.trim ().replace ( /^"(.*)"$/g, '$1' );
 
     },
 
-    getFamilies ( doc: Document ): string[] {
+    getFamilies: ( doc: Document ): string[] => {
 
       if ( !Utils.document.isRendered ( doc ) ) return [];
 
-      const getStyle = doc.defaultView ? doc.defaultView.getComputedStyle : getComputedStyle, // Improved support for Node.js
-            nodes = doc.querySelectorAll ( '*' ),
-            familiesMap: { [index: string]: boolean } = {}; // In order to de-duplicate the families
+      const getStyle = doc.defaultView?.getComputedStyle || globalThis.window?.getComputedStyle; // Improved support for Node.js
+      const nodes = doc.querySelectorAll ( '*' );
+      const familiesMap: Record<string, boolean> = {}; // In order to de-duplicate the families
 
       nodes.forEach ( node => {
 

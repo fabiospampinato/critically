@@ -47,3 +47,4 @@ const critically = async ( options: Options = {} ): Promise<Result> => {
 /* EXPORT */
 
 export default critically;
+export type {Options, Result};
